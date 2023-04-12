@@ -6,3 +6,5 @@ scikit-image
 torch
 torchvision
 matplotlib
+imagaug
+opencv
