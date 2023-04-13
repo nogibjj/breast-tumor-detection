@@ -44,7 +44,7 @@ def extract_annotation(annotation, class_folder, image_path):
     h = end_r - start_r
 
     # Return the extracted attributes
-    return image_path, class_folder, patient_id, start_r, start_c, end_r, end_c, w, h
+    return image_path, class_folder, patient_id, start_c, start_r, end_c, end_r, w, h
 
 
 # Function to convert annotation file into csv
