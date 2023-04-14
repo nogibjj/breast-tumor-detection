@@ -15,7 +15,11 @@ from skimage.io import imsave
 
 # define useful file paths:
 IMG_DIR = "/workspaces/breast-tumor-detection/Data/"
+RESIZED_IMG_DIR = "/workspaces/breast-tumor-detection/Data/Resized_Data"
 ANNOT_PATH = "/workspaces/breast-tumor-detection/Preprocessing/Annotation_Boxes.xlsx"
+RESIZED_ANNOTATION_PATH = (
+    "/workspaces/breast-tumor-detection/Preprocessing/resized_annotation_boxes.csv"
+)
 
 # Define possible classes
 classes = ["pos", "neg"]
@@ -24,6 +28,11 @@ classes = ["pos", "neg"]
 annotation = pd.read_excel(ANNOT_PATH)
 annotation["ID_Number"] = annotation["Patient ID"].apply(lambda x: x.split("_")[-1])
 annotation = annotation.set_index("ID_Number")
+
+# Get resized annotation dataset
+resized_annotation = pd.read_csv(
+    RESIZED_ANNOTATION_PATH, index_col=0, dtype={"patient_id": "str"}
+)
 
 
 def extract_annotation(annotation, class_folder, image_path):
@@ -134,7 +143,7 @@ def image_aug(df, images_path, aug_images_path, augmentor, multiple=3):
             "patient_id",
             "xmin",
             "ymin",
-            "xmas",
+            "xmax",
             "ymax",
             "width",
             "height",
@@ -150,15 +159,22 @@ def image_aug(df, images_path, aug_images_path, augmentor, multiple=3):
 
     # Create directories for each class of augmentated images
     for folder in df["class"].unique():
+        # If the class folder does not exist, create it
+        if not os.path.exists(os.path.join(aug_images_path, folder)):
+            os.mkdir(os.path.join(aug_images_path, folder))
+
         for i in range(multiple):
-            augmented_folder = "Augmentation_" + str(i)
+            # Define the folder for the specific augmentation pass
+            augmented_folder = "Augmentation_" + str(i + 1)
+
+            # Create folder if there's not one already
             if not os.path.exists(
                 os.path.join(aug_images_path, folder, augmented_folder)
             ):
                 os.mkdir(os.path.join(aug_images_path, folder, augmented_folder))
 
             # Suffix we add to the each different augmentation of one image
-            image_suffix = str(i)
+            image_suffix = str(i + 1)
 
             # Loop to perform the augmentations
             for filename in df["filename"].unique():
@@ -166,7 +182,7 @@ def image_aug(df, images_path, aug_images_path, augmentor, multiple=3):
                 patient_id = filename.split(".")[0][-3:]
                 # Augmented file name
                 augmented_filename = (
-                    "BreastMRI" + patient_id + "-aug" + image_suffix + ".png"
+                    "Aug-" + image_suffix + "BreastMRI" + patient_id + ".png"
                 )
                 # Define path of storing augmented data
                 augmented_path = os.path.join(
