@@ -6,3 +6,7 @@ scikit-image
 torch
 torchvision
 matplotlib
+imgaug
+opencv-python-headless
+scikit-learn
+openpyxl
