@@ -17,7 +17,7 @@ NUM_CLASSES = 2
 VISUALIZE_TRANSFORMED_IMAGES = False
 
 # location to save model and plots
-OUT_DIR = "./outputs"
+OUT_DIR = "/workspaces/breast-tumor-detection/Model/FasterRCNN/outputs"
 
-SAVE_PLOTS_EPOCH = 2  # save loss plots after these many epochs
-SAVE_MODEL_EPOCH = 2  # save model after these many epochs
+SAVE_PLOTS_EPOCH = 100  # save loss plots after these many epochs
+SAVE_MODEL_EPOCH = 100  # save model after these many epochs

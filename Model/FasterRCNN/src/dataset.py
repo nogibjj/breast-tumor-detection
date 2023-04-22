@@ -2,6 +2,9 @@ import torch
 import cv2
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
+import matplotlib.image as mpimg
 import os
 import glob as glob
 from config import CLASSES, RESIZE_TO, TRAIN_DIR, VALID_DIR, BATCH_SIZE
@@ -76,7 +79,7 @@ class TumorDataset(Dataset):
         boxes.append([xmin_final, ymin_final, xmax_final, yamx_final])
 
         # bounding box to tensor
-        boxes = torch.as_tensor(boxes, dtype=torch.float32)
+        boxes = torch.as_tensor(boxes, dtype=torch.int64)
         # area of the bounding boxes
         area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
         # labels to tensor
@@ -113,18 +116,19 @@ valid_dataset = TumorDataset(
 )
 train_loader = DataLoader(
     train_dataset,
-    batch_size=BATCH_SIZE,
+    batch_size=2,
     shuffle=True,
-    num_workers=2,
+    num_workers=1,
     collate_fn=collate_fn,
 )
 valid_loader = DataLoader(
     valid_dataset,
-    batch_size=BATCH_SIZE,
+    batch_size=2,
     shuffle=False,
-    num_workers=2,
+    num_workers=1,
     collate_fn=collate_fn,
 )
+
 print(f"Number of training samples: {len(train_dataset)}")
 print(f"Number of validation samples: {len(valid_dataset)}\n")
 
@@ -136,25 +140,14 @@ if __name__ == "__main__":
     # function to visualize a single sample
     def visualize_sample(image, target):
         box = target["boxes"][0]
-        label = CLASSES[target["labels"]]
-        cv2.rectangle(
-            image,
-            (int(box[0]), int(box[1])),
-            (int(box[2]), int(box[3])),
-            (0, 255, 0),
-            1,
-        )
-        cv2.putText(
-            image,
-            label,
-            (int(box[0]), int(box[1] - 5)),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.7,
-            (0, 0, 255),
-            2,
-        )
-        cv2.imshow("Image", image)
-        cv2.waitKey(0)
+        xy = (box[0], box[1])
+        w = box[2] - box[0]
+        h = box[3] - box[1]
+        rect = Rectangle(xy, w, h, linewidth=1, edgecolor="r", facecolor="none")
+        _, ax = plt.subplots(1)
+        ax.imshow(image)
+        ax.add_patch(rect)
+        plt.show()
 
     NUM_SAMPLES_TO_VISUALIZE = 5
     for i in range(NUM_SAMPLES_TO_VISUALIZE):
