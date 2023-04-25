@@ -44,7 +44,8 @@ class TumorDataset(Dataset):
         # read the image
         image = cv2.imread(image_path)
         image_resized = cv2.resize(image, (self.width, self.height))
-        image_resized = image_resized / 255
+        image_resized = image_resized / 255.0
+        image_resized = image_resized[:, :, 0]
 
         # capture the corresponding XML file for getting the annotations
         boxes = []
@@ -98,9 +99,9 @@ class TumorDataset(Dataset):
             sample = self.transforms(
                 image=image_resized, bboxes=target["boxes"], labels=labels
             )
-            image_resized = sample["image"]
+            image_resized = torch.Tensor(sample["image"])
             target["boxes"] = torch.Tensor(sample["bboxes"])
-
+        image_resized = image_resized.type(torch.FloatTensor)
         return image_resized, target
 
     def __len__(self):
@@ -116,14 +117,14 @@ valid_dataset = TumorDataset(
 )
 train_loader = DataLoader(
     train_dataset,
-    batch_size=2,
+    batch_size=1,
     shuffle=True,
     num_workers=1,
     collate_fn=collate_fn,
 )
 valid_loader = DataLoader(
     valid_dataset,
-    batch_size=2,
+    batch_size=1,
     shuffle=False,
     num_workers=1,
     collate_fn=collate_fn,
@@ -134,22 +135,35 @@ print(f"Number of validation samples: {len(valid_dataset)}\n")
 
 if __name__ == "__main__":
     # sanity check of the Dataset pipeline with sample visualization
-    dataset = TumorDataset(TRAIN_DIR, RESIZE_TO, RESIZE_TO, CLASSES, annotation)
-    print(f"Number of training images: {len(dataset)}")
+    dataset = TumorDataset(
+        TRAIN_DIR, RESIZE_TO, RESIZE_TO, CLASSES, annotation, get_train_transform()
+    )
+    # print(f"Number of training images: {len(dataset)}")
 
-    # function to visualize a single sample
-    def visualize_sample(image, target):
-        box = target["boxes"][0]
-        xy = (box[0], box[1])
-        w = box[2] - box[0]
-        h = box[3] - box[1]
-        rect = Rectangle(xy, w, h, linewidth=1, edgecolor="r", facecolor="none")
-        _, ax = plt.subplots(1)
-        ax.imshow(image)
-        ax.add_patch(rect)
-        plt.show()
+    # # function to visualize a single sample
+    # def visualize_sample(image, target):
+    #     box = target["boxes"][0]
+    #     xy = (box[0], box[1])
+    #     w = box[2] - box[0]
+    #     h = box[3] - box[1]
+    #     rect = Rectangle(xy, w, h, linewidth=1, edgecolor="r", facecolor="none")
+    #     _, ax = plt.subplots(1)
+    #     ax.imshow(image)
+    #     ax.add_patch(rect)
+    #     plt.show()
 
-    NUM_SAMPLES_TO_VISUALIZE = 5
-    for i in range(NUM_SAMPLES_TO_VISUALIZE):
-        image, target = dataset[i]
-        visualize_sample(image, target)
+    # NUM_SAMPLES_TO_VISUALIZE = 5
+    # for i in range(NUM_SAMPLES_TO_VISUALIZE):
+    #     image, target = dataset[i]
+    #     visualize_sample(image, target)
+
+    loader = DataLoader(
+        dataset,
+        batch_size=1,
+        shuffle=True,
+        num_workers=1,
+        collate_fn=collate_fn,
+    )
+    iterator = iter(loader)
+    images, targets = next(iterator)
+    print(images[0].shape)
