@@ -70,7 +70,9 @@ class MotionBlur(torch.nn.Module):
         self.logits = torch.nn.Parameter(
             torch.ones(8, device=DEVICE), requires_grad=True
         )
-        self.probs = F.softmax(self.logits, dtype=torch.float).to(DEVICE)
+        self.probs = torch.nn.Parameter(F.softmax(self.logits, dtype=torch.float).to(DEVICE), 
+        requires_grad=True
+        )
 
         # Initialize motion convlutions and final image
         self.final_image = torch.nn.Parameter(torch.zeros(1, 512, 512)).to(DEVICE)
