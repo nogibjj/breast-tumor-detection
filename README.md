@@ -1,6 +1,8 @@
 # Object Detection Neural Network on Breast Tumor Images with Simulated Motion Blurs
 In this project, using breast cancer data from researchers at Duke University, we measure the effects of motion blur on tumor identification algorithm using object detection neural network.
 
+You can access and run the models in this Colab Notebook: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://drive.google.com/file/d/1IRyOO8kBCv7su-6ciqY--8rdbAHXEOs8/view?usp=sharing)
+
 ## Acknowledgements
 The image data and annotations are sourced from Dr. Maciej A. Mazurowski's lab. Below is the paper containing the original data and study.
 
