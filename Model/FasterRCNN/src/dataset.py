@@ -12,7 +12,7 @@ from torch.utils.data import Dataset, DataLoader
 from utils import collate_fn, get_train_transform, get_valid_transform
 
 annotation = pd.read_csv(
-    "/workspaces/breast-tumor-detection/Model/FasterRCNN/data/annotation.csv",
+    "/content/breast-tumor-detection/Model/FasterRCNN/data/annotation.csv",
     index_col=0,
     dtype={"patient_id": "str"},
 )
