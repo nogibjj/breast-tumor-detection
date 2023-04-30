@@ -1,7 +1,7 @@
 from config import DEVICE, NUM_CLASSES, NUM_EPOCHS, OUT_DIR
 from config import VISUALIZE_TRANSFORMED_IMAGES
 from config import SAVE_PLOTS_EPOCH, SAVE_MODEL_EPOCH
-from model_modified import create_model, MyModel
+from model_gumbel_softmax import create_model, MyModel
 from utils import Averager, show_tranformed_image
 from tqdm.auto import tqdm
 from dataset import train_loader, valid_loader
