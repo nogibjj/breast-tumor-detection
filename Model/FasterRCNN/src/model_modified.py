@@ -5,6 +5,60 @@ from config import DEVICE
 import torch.nn.functional as F
 import torch
 
+fill_kernel = [
+            1,
+            1,
+            1,
+            1,
+            1,
+            2 / 3,
+            2 / 3,
+            2 / 3,
+            2 / 3,
+            2 / 3,
+            1 / 3,
+            1 / 3,
+            1 / 3,
+            1 / 3,
+            1 / 3,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ]
+
+def make_kernel(kernel_size, direction, fill_kernel):
+    kernel = torch.zeros((1, 1, kernel_size, kernel_size)).type(
+                torch.FloatTensor
+            )
+    if direction == 'north':
+        kernel[0,0,:,int(kernel_size/2)] = fill_kernel
+    elif direction == 'south':
+        kernel[0,0,:,int(kernel_size/2)] = fill_kernel.flip(0)
+    elif direction == 'west':
+        kernel[0,0,int(kernel_size/2),:] = fill_kernel
+    elif direction == 'east':
+        kernel[0,0,int(kernel_size/2),:] = fill_kernel.flip(0)
+    elif direction == 'northeast':
+        kernel[0,0,range(kernel_size), -range(kernel_size+1)] = fill_kernel
+    elif direction == 'southwest':
+        kernel[0,0,range(kernel_size), range(kernel_size)] = fill_kernel.flip(0)
+    elif direction == 'northwest':
+
+    return kernel
+
+
 
 class MotionBlur(torch.nn.Module):
     """Custom layer that picks one out of 8 motion blurs based
@@ -32,6 +86,26 @@ class MotionBlur(torch.nn.Module):
             )
         ).to(DEVICE)
         self.kernel_west = (
+            torch.zeros((1, 1, self.kernel_size, self.kernel_size)).type(
+                torch.FloatTensor
+            )
+        ).to(DEVICE)
+        self.kernel_north_east = (
+            torch.zeros((1, 1, self.kernel_size, self.kernel_size)).type(
+                torch.FloatTensor
+            )
+        ).to(DEVICE)
+        self.kernel_north_west = (
+            torch.zeros((1, 1, self.kernel_size, self.kernel_size)).type(
+                torch.FloatTensor
+            )
+        ).to(DEVICE)
+        self.south_west = (
+            torch.zeros((1, 1, self.kernel_size, self.kernel_size)).type(
+                torch.FloatTensor
+            )
+        ).to(DEVICE)
+        self.southeast = (
             torch.zeros((1, 1, self.kernel_size, self.kernel_size)).type(
                 torch.FloatTensor
             )
