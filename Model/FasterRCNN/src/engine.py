@@ -1,7 +1,7 @@
 from config import DEVICE, NUM_CLASSES, NUM_EPOCHS, OUT_DIR
 from config import VISUALIZE_TRANSFORMED_IMAGES
 from config import SAVE_PLOTS_EPOCH, SAVE_MODEL_EPOCH
-from model import create_model, RCNN_Modified
+from model_modified import create_model, MyModel
 from utils import Averager, show_tranformed_image
 from tqdm.auto import tqdm
 from dataset import train_loader, valid_loader
@@ -25,8 +25,7 @@ def train(train_data_loader, model, optimizer):
     for data in prog_bar:
         optimizer.zero_grad()
         images, targets = data
-
-        images = list(image.to(DEVICE, dtype=torch.float) for image in images)
+        images = [image.to(DEVICE) for image in images]
         targets = [
             {k: v.to(DEVICE, dtype=torch.int64) for k, v in t.items()} for t in targets
         ]
@@ -39,7 +38,7 @@ def train(train_data_loader, model, optimizer):
 
         train_loss_hist.send(loss_value)
 
-        losses.backward()
+        losses.backward(retain_graph=True)
         optimizer.step()
 
         train_itr += 1
@@ -61,12 +60,10 @@ def validate(valid_data_loader, model):
 
     for data in prog_bar:
         images, targets = data
-
-        images = list(image.to(DEVICE, dtype=torch.float) for image in images)
+        images = [image.to(DEVICE) for image in images]
         targets = [
             {k: v.to(DEVICE, dtype=torch.int64) for k, v in t.items()} for t in targets
         ]
-
         with torch.no_grad():
             loss_dict = model(images, targets)
         losses = sum(loss for loss in loss_dict.values())
@@ -81,12 +78,12 @@ def validate(valid_data_loader, model):
 
 if __name__ == "__main__":
     # initialize the model and move to the computation device
-    model = RCNN_Modified(pretrained=create_model(NUM_CLASSES))
-    model = model.to(DEVICE)
+    model = MyModel(pretrained=create_model(NUM_CLASSES))
+    model = model.cuda()
     # get the model parameters
     params = [p for p in model.parameters() if p.requires_grad]
     # define the optimizer
-    optimizer = torch.optim.SGD(params, lr=0.001, momentum=0.9, weight_decay=0.0005)
+    optimizer = torch.optim.SGD(params, lr=0.00001, momentum=0.9, weight_decay=0.0005)
 
     # initialize the Averager class
     train_loss_hist = Averager()
@@ -97,6 +94,7 @@ if __name__ == "__main__":
     # ... iterations till ena and plot graphs for all iterations
     train_loss_list = []
     val_loss_list = []
+    logits_list = []
 
     # name to save the trained model with
     MODEL_NAME = "model"
@@ -120,15 +118,17 @@ if __name__ == "__main__":
         # start timer and carry out training and validation
         start = time.time()
         train_loss = train(train_loader, model, optimizer)
+        logits_list.append(list(next(model.parameters()).detach().cpu()))
+        # print(next(model.parameters()).detach().cpu().numpy())
         val_loss = validate(valid_loader, model)
         print(f"Epoch #{epoch} train loss: {train_loss_hist.value:.3f}")
         print(f"Epoch #{epoch} validation loss: {val_loss_hist.value:.3f}")
         end = time.time()
         print(f"Took {((end - start) / 60):.3f} minutes for epoch {epoch}")
 
-        if (epoch + 1) % SAVE_MODEL_EPOCH == 0:  # save model after every n epochs
-            torch.save(model.state_dict(), f"{OUT_DIR}/model{epoch+1}.pth")
-            print("SAVING MODEL COMPLETE...\n")
+        # if (epoch + 1) % SAVE_MODEL_EPOCH == 0:  # save model after every n epochs
+        #     torch.save(model.state_dict(), f"{OUT_DIR}/model{epoch+1}.pth")
+        #     print("SAVING MODEL COMPLETE...\n")
 
         if (epoch + 1) % SAVE_PLOTS_EPOCH == 0:  # save loss plots after n epochs
             train_ax.plot(train_loss, color="blue")
