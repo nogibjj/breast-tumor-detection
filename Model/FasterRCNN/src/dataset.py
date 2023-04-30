@@ -117,14 +117,14 @@ valid_dataset = TumorDataset(
 )
 train_loader = DataLoader(
     train_dataset,
-    batch_size=1,
+    batch_size=BATCH_SIZE,
     shuffle=True,
     num_workers=1,
     collate_fn=collate_fn,
 )
 valid_loader = DataLoader(
     valid_dataset,
-    batch_size=1,
+    batch_size=BATCH_SIZE,
     shuffle=False,
     num_workers=1,
     collate_fn=collate_fn,
